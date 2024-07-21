@@ -3,16 +3,17 @@ package handlers
 import (
     "encoding/json"
     "net/http"
-	"log"
+    "log"
 
-	"github.com/tmohagan/go-search-service/db"
+    "github.com/tmohagan/go-search-service/db"
+    "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SearchResult struct {
-    ID      string `json:"id" bson:"_id"`
-    Title   string `json:"title"`
-    Summary string `json:"summary"`
-    Type    string `json:"type"`
+    ID      primitive.ObjectID `json:"id" bson:"_id"`
+    Title   string             `json:"title"`
+    Summary string             `json:"summary"`
+    Type    string             `json:"type"`
 }
 
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,12 +37,27 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
     // Convert results to SearchResult structs
     var searchResults []SearchResult
     for _, result := range results {
-        searchResult := SearchResult{
-            ID:      result["_id"].(string),
-            Title:   result["title"].(string),
-            Summary: result["summary"].(string),
-            Type:    result["type"].(string),
+        var searchResult SearchResult
+        
+        // Handle _id as ObjectID
+        if oid, ok := result["_id"].(primitive.ObjectID); ok {
+            searchResult.ID = oid
+        } else {
+            log.Printf("Unexpected type for _id: %T", result["_id"])
+            continue
         }
+
+        // Handle other fields
+        if title, ok := result["title"].(string); ok {
+            searchResult.Title = title
+        }
+        if summary, ok := result["summary"].(string); ok {
+            searchResult.Summary = summary
+        }
+        if typeStr, ok := result["type"].(string); ok {
+            searchResult.Type = typeStr
+        }
+
         searchResults = append(searchResults, searchResult)
     }
 

@@ -22,6 +22,10 @@ func main() {
         log.Fatalf("Failed to connect to database: %v", err)
     }
 
+	if err := db.VerifyDatabaseContent(); err != nil {
+        log.Fatalf("Failed to verify database content: %v", err)
+    }
+
     r := mux.NewRouter()
     r.HandleFunc("/search", handlers.SearchHandler).Methods("GET")
 
