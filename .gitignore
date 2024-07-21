@@ -45,3 +45,4 @@ tmp/
 
 # Any local configuration files
 config.local.yaml
+temp

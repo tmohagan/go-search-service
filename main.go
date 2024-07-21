@@ -6,14 +6,20 @@ import (
     "os"
 
     "github.com/gorilla/mux"
+	"github.com/joho/godotenv"
     "github.com/tmohagan/go-search-service/db"
     "github.com/tmohagan/go-search-service/handlers"
 )
 
 func main() {
-    err := db.ConnectDB()
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Error loading .env file")
+    }
+
+    err = db.ConnectDB()
+    if err != nil {
+        log.Fatalf("Failed to connect to database: %v", err)
     }
 
     r := mux.NewRouter()

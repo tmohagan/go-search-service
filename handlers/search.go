@@ -3,6 +3,9 @@ package handlers
 import (
     "encoding/json"
     "net/http"
+	"log"
+
+	"github.com/tmohagan/go-search-service/db"
 )
 
 type SearchResult struct {
@@ -18,11 +21,30 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Missing search query", http.StatusBadRequest)
         return
     }
+    
+    log.Printf("Received search query: %s", query)
 
-    // Implement search logic here
+    results, err := db.PerformSearch(query)
+    if err != nil {
+        log.Printf("Error performing search: %v", err)
+        http.Error(w, "Error performing search", http.StatusInternalServerError)
+        return
+    }
+    
+    log.Printf("Found %d results", len(results))
 
-    results := []SearchResult{} // This will be populated with actual results
+    // Convert results to SearchResult structs
+    var searchResults []SearchResult
+    for _, result := range results {
+        searchResult := SearchResult{
+            ID:      result["_id"].(string),
+            Title:   result["title"].(string),
+            Summary: result["summary"].(string),
+            Type:    result["type"].(string),
+        }
+        searchResults = append(searchResults, searchResult)
+    }
 
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(results)
+    json.NewEncoder(w).Encode(searchResults)
 }
