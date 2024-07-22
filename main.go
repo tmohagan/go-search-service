@@ -7,9 +7,11 @@ import (
     "os"
     "os/signal"
     "time"
+    "strings"
 
     "github.com/gorilla/mux"
     "github.com/joho/godotenv"
+    "github.com/rs/cors"
     "github.com/tmohagan/go-search-service/db"
     "github.com/tmohagan/go-search-service/handlers"
 )
@@ -33,10 +35,18 @@ func run() error {
     r.Use(loggingMiddleware)
     r.HandleFunc("/search", handlers.SearchHandler).Methods("GET")
 
+    c := cors.New(cors.Options{
+        AllowedOrigins: strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
+        AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+        AllowedHeaders: []string{"*"},
+    })
+
+    handler := c.Handler(r)
+
     port := getEnv("PORT", "8080")
     srv := &http.Server{
         Addr:         ":" + port,
-        Handler:      r,
+        Handler:      handler,
         ReadTimeout:  15 * time.Second,
         WriteTimeout: 15 * time.Second,
         IdleTimeout:  60 * time.Second,
