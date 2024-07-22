@@ -36,9 +36,9 @@ func run() error {
     r.HandleFunc("/search", handlers.SearchHandler).Methods("GET")
 
     c := cors.New(cors.Options{
-        AllowedOrigins: strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
+		AllowedOrigins: strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
         AllowedMethods: []string{"GET", "POST", "OPTIONS"},
-        AllowedHeaders: []string{"*"},
+        AllowedHeaders: []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
     })
 
     handler := c.Handler(r)
