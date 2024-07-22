@@ -33,7 +33,7 @@ func ConnectDB() error {
     return nil
 }
 
-func PerformSearch(query string, page, resultsPerPage int64) ([]bson.M, int64, error) {
+func PerformSearch(query string, page, resultsPerPage int64, searchContent bool) ([]bson.M, int64, error) {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
@@ -43,12 +43,17 @@ func PerformSearch(query string, page, resultsPerPage int64) ([]bson.M, int64, e
 
     log.Printf("Searching for query: %s, page: %d, resultsPerPage: %d", query, page, resultsPerPage)
 
+    filterFields := []bson.M{
+        {"title": bson.M{"$regex": query, "$options": "i"}},
+        {"summary": bson.M{"$regex": query, "$options": "i"}},
+    }
+
+    if searchContent {
+        filterFields = append(filterFields, bson.M{"content": bson.M{"$regex": query, "$options": "i"}})
+    }
+
     filter := bson.M{
-        "$or": []bson.M{
-            {"title": bson.M{"$regex": query, "$options": "i"}},
-            {"summary": bson.M{"$regex": query, "$options": "i"}},
-            {"content": bson.M{"$regex": query, "$options": "i"}},
-        },
+        "$or": filterFields,
     }
 
     skip := (page - 1) * resultsPerPage

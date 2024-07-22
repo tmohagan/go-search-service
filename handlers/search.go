@@ -39,9 +39,11 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
     
     resultsPerPage := int64(10)
 
+    searchContent, _ := strconv.ParseBool(r.URL.Query().Get("searchContent"))
+
     log.Printf("Received search query: %s, page: %d", query, page)
 
-    results, totalCount, err := db.PerformSearch(query, page, resultsPerPage)
+    results, totalCount, err := db.PerformSearch(query, page, resultsPerPage, searchContent)
     if err != nil {
         log.Printf("Error performing search: %v", err)
         http.Error(w, "Error performing search", http.StatusInternalServerError)
